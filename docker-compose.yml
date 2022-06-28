@@ -1,21 +1,41 @@
 version: "3.9"
 
 services:
-  web:
-    build: .
-    command: npm start
-    volumes:
-      - .:/usr/app
-    ports:
-      - "3000:3000"
-    links:
-      - "db:database"
   db:
-    image: postgres
+    image: postgres:12
     restart: always
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: "123"
     ports:
-      - "5432:5432"
+      - 5432:5432
+    networks:
+      network:
+        ipv4_address: 172.30.0.6
+
+  web:
+    build:
+      context: ./
+      target: dev
+    volumes:
+      - .:/usr/app
+    command: npm run start
+    ports:
+      - 80:3000
+    environment:
+      NODE_ENV: development
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "123"
+      POSTGRES_HOST: 172.30.0.6
+      POSTGRES_PORT: 5432
+    networks:
+      network:
+        ipv4_address: 172.30.0.2
+
+networks:
+  network:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
